@@ -270,3 +270,15 @@ class OpenAIMixin(ABC):
             logger.warning(f"Failed to check model availability for {model}: {e}")
 
         return False
+
+    async def list_model_names(self) -> list[str]:
+        """
+        Get list of model names available on the server.
+
+        There is no distinction between LLM and Embedding models.
+        """
+        try:
+            models = await self.client.models.list()
+        except Exception as exc:
+            raise ConnectionError("Failed to retrieve model list from server: %s", exc) from exc
+        return [m.id for m in models.data]

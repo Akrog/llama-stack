@@ -12,7 +12,7 @@ OpenAI only needs `api_key` but other servers need at least `base_url` and `allo
 |-------|------|----------|---------|-------------|
 | `api_key` | `str \| None` | No |  | API key for OpenAI models |
 | `base_url` | `<class 'str'>` | No | https://api.openai.com/v1 | Base URL for OpenAI API |
-| `allowed_models` | `list[str` | No | [] | List of model names to expose from all the available ones. Defaults to all (empty list). |
+| `allowed_models` | `list[str` | No | [] | List of model names to expose from all the available ones in the server. Defaults to all (empty list). |
 | `embeddings_metadata` | `dict[str, remote.inference.openai.config.EmbeddingMetadata \| None` | No |  | Mapping of embedding models to their metadata. Defaults to OpenAI's values |
 | `extra_completion_params` | `dict[str, Any` | No | {} | Extra parameters to pass to litellm's completion. For example drop_params or allowed_openai_params |
 

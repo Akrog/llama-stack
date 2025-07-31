@@ -39,21 +39,11 @@ EMBEDDING_MODEL_IDS: dict[str, EmbeddingMetadata] = {
     "text-embedding-3-large": EmbeddingMetadata(embedding_dimension=3072, context_length=8192),
 }
 
-MODEL_ENTRIES = [ProviderModelEntry(provider_model_id=m) for m in LLM_MODEL_IDS] + [
-    ProviderModelEntry(
-        provider_model_id=model_id,
-        model_type=ModelType.embedding,
-        metadata={
-            "embedding_dimension": model_info.embedding_dimension,
-            "context_length": model_info.context_length,
-        },
-    )
-    for model_id, model_info in EMBEDDING_MODEL_IDS.items()
-]
-
 
 def get_model_entries(
-    allowed: list[str] | None, embeddings: dict[str, EmbeddingMetadata] | None
+    allowed: list[str] | None,
+    embeddings: dict[str, EmbeddingMetadata] | None,
+    server_models: list[str] | None,
 ) -> list[ProviderModelEntry]:
     """Get model entries to expose.
 
@@ -61,17 +51,25 @@ def get_model_entries(
     to their metadata, returns a list of ProviderModelEntry meant for the
     ModelRegistryHelper.
 
-    All models are returned when allowed is an empty list or None.
+    List of the present models in the server can be provided to ensure only
+    valid models are exposed.
+
+    All models in the server are returned when allowed is an empty list or None.
 
     When no embeddings metadata is provided the default values for OpenAI are
     used.
     """
-    allowed = allowed or LLM_MODEL_IDS
+    allowed = allowed or server_models
     if embeddings is None:
         embeddings = EMBEDDING_MODEL_IDS
 
     res = []
+    missing_models = []
     for model in allowed:
+        if model not in server_models:
+            missing_models.append(model)
+            continue
+
         metadata = embeddings.get(model)
         if metadata:
             res.append(
@@ -83,6 +81,13 @@ def get_model_entries(
             )
         else:
             res.append(ProviderModelEntry(provider_model_id=model))
+
+    if missing_models:
+        logger.warning(
+            "Ignoring missing models (%s) from models present in OpenAI server (%s)",
+            ", ".join(missing_models),
+            ",".join(server_models),
+        )
 
     missing_embeddings = set(embeddings.keys()).difference(allowed)
     if missing_embeddings:

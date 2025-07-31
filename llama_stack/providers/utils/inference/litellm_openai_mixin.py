@@ -88,7 +88,9 @@ class LiteLLMOpenAIMixin(
         :param json_schema_strict: Whether to use strict mode for JSON schema validation.
         :param extra_completion_params: Additional parameters to pass litellm's completion method.
         """
-        ModelRegistryHelper.__init__(self, model_entries)
+        # Allow registering models at a later time with register_models method
+        if model_entries is not None:
+            self.register_models(model_entries)
 
         self.litellm_provider_name = litellm_provider_name
         self.api_key_from_config = api_key_from_config
@@ -102,6 +104,9 @@ class LiteLLMOpenAIMixin(
             self.is_openai_compat = True
         else:
             self.is_openai_compat = False
+
+    def register_models(self, model_entries) -> None:
+        ModelRegistryHelper.__init__(self, model_entries)
 
     async def initialize(self):
         pass

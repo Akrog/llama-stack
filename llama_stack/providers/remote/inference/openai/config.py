@@ -35,7 +35,7 @@ class OpenAIConfig(BaseModel):
     )
     allowed_models: list[str] = Field(
         default_factory=list,
-        description="List of model names to expose from all the available ones. Defaults to all (empty list).",
+        description="List of model names to expose from all the available ones in the server. Defaults to all (empty list).",
     )
     embeddings_metadata: dict[str, EmbeddingMetadata] | None = Field(
         default=None,

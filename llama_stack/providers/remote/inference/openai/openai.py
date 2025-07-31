@@ -42,10 +42,9 @@ class OpenAIInferenceAdapter(OpenAIMixin, LiteLLMOpenAIMixin):
     """
 
     def __init__(self, config: OpenAIConfig) -> None:
-        model_entries = get_model_entries(config.allowed_models, config.embeddings_metadata)
         LiteLLMOpenAIMixin.__init__(
             self,
-            model_entries,
+            None,  # Postpone model entry initialization to run_post_instantiation
             litellm_provider_name="openai",
             api_key_from_config=config.api_key,
             provider_data_api_key_field="openai_api_key",
@@ -67,6 +66,15 @@ class OpenAIInferenceAdapter(OpenAIMixin, LiteLLMOpenAIMixin):
 
     async def initialize(self) -> None:
         await super().initialize()
+
+    async def run_post_instantiation(self) -> None:
+        server_models = await self.list_model_names()
+        model_entries = get_model_entries(
+            self.config.allowed_models,
+            self.config.embeddings_metadata,
+            server_models,
+        )
+        self.register_models(model_entries)
 
     async def shutdown(self) -> None:
         await super().shutdown()
