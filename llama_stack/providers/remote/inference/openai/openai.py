@@ -10,7 +10,7 @@ from llama_stack.providers.utils.inference.litellm_openai_mixin import LiteLLMOp
 from llama_stack.providers.utils.inference.openai_mixin import OpenAIMixin
 
 from .config import OpenAIConfig
-from .models import MODEL_ENTRIES
+from .models import get_model_entries
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +42,10 @@ class OpenAIInferenceAdapter(OpenAIMixin, LiteLLMOpenAIMixin):
     """
 
     def __init__(self, config: OpenAIConfig) -> None:
+        model_entries = get_model_entries(config.allowed_models)
         LiteLLMOpenAIMixin.__init__(
             self,
-            MODEL_ENTRIES,
+            model_entries,
             litellm_provider_name="openai",
             api_key_from_config=config.api_key,
             provider_data_api_key_field="openai_api_key",
