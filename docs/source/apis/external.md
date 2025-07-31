@@ -310,10 +310,23 @@ class WeatherKazeAdapter(WeatherProvider):
     async def initialize(self) -> None:
         pass
 
+    async def run_post_instantiation(self) -> None:
+        pass
+
     async def get_available_locations(self) -> dict[str, list[str]]:
         """Get available weather locations."""
         return {"locations": ["Paris", "Tokyo"]}
 ```
+
+Your class will be initialized in the following way by llama-stack:
+- Calls your `get_adapter_impl` method, which in turn:
+  - Synchronously creates the `WeatherKazeAdapter` instance (`__init__`).
+  - Asynchronously calls the `initialize` method of the new instance.
+- Adds `__provider_id__`, `__provider_spec__`, and `__provider_config__`
+  attributes to your new `WeatherKazeAdapter` instance.
+- Asynchronously calls the `run_post_instantiation` method of the new instance.
+
+This provides a flexible initialization mechanism that can adapt to your needs.
 
 5. Create the provider specification:
 

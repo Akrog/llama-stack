@@ -382,6 +382,10 @@ async def instantiate_provider(
     impl.__provider_id__ = provider.provider_id
     impl.__provider_spec__ = provider_spec
     impl.__provider_config__ = config
+    # The `initialize` method on providers is not always sufficient, in some
+    # cases the instance needs to have 3 variables we there's this other mechanism
+    if hasattr(impl, "run_post_instantiation"):
+        await impl.run_post_instantiation()
 
     protocols = api_protocol_map_for_compliance_check(run_config)
     additional_protocols = additional_protocols_map()
