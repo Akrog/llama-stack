@@ -34,6 +34,13 @@ providers:
       - o4-mini
       - text-embedding-3-small
       - text-embedding-3-large
+      embeddings_metadata:
+        text-embedding-3-small:
+          embedding_dimension: 1536
+          context_length: 8192
+        text-embedding-3-large:
+          embedding_dimension: 3072
+          context_length: 8192
   - provider_id: anthropic
     provider_type: remote::anthropic
     config:

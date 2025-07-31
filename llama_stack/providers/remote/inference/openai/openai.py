@@ -42,7 +42,7 @@ class OpenAIInferenceAdapter(OpenAIMixin, LiteLLMOpenAIMixin):
     """
 
     def __init__(self, config: OpenAIConfig) -> None:
-        model_entries = get_model_entries(config.allowed_models)
+        model_entries = get_model_entries(config.allowed_models, config.embeddings_metadata)
         LiteLLMOpenAIMixin.__init__(
             self,
             model_entries,

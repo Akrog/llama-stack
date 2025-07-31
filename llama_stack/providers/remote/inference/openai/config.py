@@ -10,14 +10,17 @@ from pydantic import BaseModel, Field
 
 from llama_stack.schema_utils import json_schema_type
 
-from .models import get_model_entries
-
 
 class OpenAIProviderDataValidator(BaseModel):
     openai_api_key: str | None = Field(
         default=None,
         description="API key for OpenAI models",
     )
+
+
+class EmbeddingMetadata(BaseModel):
+    embedding_dimension: int = Field(description="The dimensionality of the embeddings.")
+    context_length: int = Field(description="The maximum sequence length that the model can handle.")
 
 
 @json_schema_type
@@ -34,6 +37,10 @@ class OpenAIConfig(BaseModel):
         default_factory=list,
         description="List of model names to expose from all the available ones. Defaults to all (empty list).",
     )
+    embeddings_metadata: dict[str, EmbeddingMetadata] | None = Field(
+        default=None,
+        description="Mapping of embedding models to their metadata. Defaults to OpenAI's values",
+    )
 
     @classmethod
     def sample_run_config(
@@ -41,14 +48,18 @@ class OpenAIConfig(BaseModel):
         api_key: str = "${env.OPENAI_API_KEY:=}",
         base_url: str = "${env.OPENAI_BASE_URL:=https://api.openai.com/v1}",
         allowed_models: list[str] = None,
+        embeddings_metadata: dict[str, EmbeddingMetadata] | None = None,
         **kwargs,
     ) -> dict[str, Any]:
-        if not allowed_models:
-            models = get_model_entries(None)
-            allowed_models = [m.provider_model_id for m in models]
+        # Import here to avoid circular references
+        from .models import EMBEDDING_MODEL_IDS, LLM_MODEL_IDS
+
+        allowed_models = allowed_models or LLM_MODEL_IDS
+        embeddings_metadata = embeddings_metadata or EMBEDDING_MODEL_IDS
 
         return {
             "api_key": api_key,
             "base_url": base_url,
             "allowed_models": allowed_models,
+            "embeddings_metadata": embeddings_metadata,
         }

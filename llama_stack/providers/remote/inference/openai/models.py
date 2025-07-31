@@ -4,12 +4,16 @@
 # This source code is licensed under the terms described in the LICENSE file in
 # the root directory of this source tree.
 
-from dataclasses import dataclass
+import logging
 
 from llama_stack.apis.models import ModelType
 from llama_stack.providers.utils.inference.model_registry import (
     ProviderModelEntry,
 )
+
+from .config import EmbeddingMetadata
+
+logger = logging.getLogger(__name__)
 
 LLM_MODEL_IDS = [
     "gpt-3.5-turbo-0125",
@@ -26,22 +30,14 @@ LLM_MODEL_IDS = [
     "o1-mini",
     "o3-mini",
     "o4-mini",
+    "text-embedding-3-small",
+    "text-embedding-3-large",
 ]
 
-
-@dataclass
-class EmbeddingModelInfo:
-    """Structured representation of embedding model information."""
-
-    embedding_dimension: int
-    context_length: int
-
-
-EMBEDDING_MODEL_IDS: dict[str, EmbeddingModelInfo] = {
-    "text-embedding-3-small": EmbeddingModelInfo(1536, 8192),
-    "text-embedding-3-large": EmbeddingModelInfo(3072, 8192),
+EMBEDDING_MODEL_IDS: dict[str, EmbeddingMetadata] = {
+    "text-embedding-3-small": EmbeddingMetadata(embedding_dimension=1536, context_length=8192),
+    "text-embedding-3-large": EmbeddingMetadata(embedding_dimension=3072, context_length=8192),
 }
-
 
 MODEL_ENTRIES = [ProviderModelEntry(provider_model_id=m) for m in LLM_MODEL_IDS] + [
     ProviderModelEntry(
@@ -56,14 +52,40 @@ MODEL_ENTRIES = [ProviderModelEntry(provider_model_id=m) for m in LLM_MODEL_IDS]
 ]
 
 
-def get_model_entries(allowed: list[str] | None) -> list[ProviderModelEntry]:
+def get_model_entries(
+    allowed: list[str] | None, embeddings: dict[str, EmbeddingMetadata] | None
+) -> list[ProviderModelEntry]:
     """Get model entries to expose.
 
-    Given a list of allowed model names returns a list of ProviderModelEntry meant for the ModelRegistryHelper.
+    Given a list of allowed model names and a mapping of embedding model names
+    to their metadata, returns a list of ProviderModelEntry meant for the
+    ModelRegistryHelper.
 
     All models are returned when allowed is an empty list or None.
-    """
-    if not allowed:
-        return MODEL_ENTRIES
 
-    return [model for model in MODEL_ENTRIES if model.provider_model_id in allowed]
+    When no embeddings metadata is provided the default values for OpenAI are
+    used.
+    """
+    allowed = allowed or LLM_MODEL_IDS
+    if embeddings is None:
+        embeddings = EMBEDDING_MODEL_IDS
+
+    res = []
+    for model in allowed:
+        metadata = embeddings.get(model)
+        if metadata:
+            res.append(
+                ProviderModelEntry(
+                    provider_model_id=model,
+                    model_type=ModelType.embedding,
+                    metadata=dict(metadata),
+                )
+            )
+        else:
+            res.append(ProviderModelEntry(provider_model_id=model))
+
+    missing_embeddings = set(embeddings.keys()).difference(allowed)
+    if missing_embeddings:
+        logger.warning("Embedding metadata provided for unknown models: %s.", ", ".join(missing_embeddings))
+
+    return res
