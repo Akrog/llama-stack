@@ -74,6 +74,7 @@ class LiteLLMOpenAIMixin(
         openai_compat_api_base: str | None = None,
         download_images: bool = False,
         json_schema_strict: bool = True,
+        extra_completion_params: dict[str, Any] | None = None,
     ):
         """
         Initialize the LiteLLMOpenAIMixin.
@@ -85,6 +86,7 @@ class LiteLLMOpenAIMixin(
         :param openai_compat_api_base: The base URL for OpenAI compatibility, or None if not using OpenAI compatibility.
         :param download_images: Whether to download images and convert to base64 for message conversion.
         :param json_schema_strict: Whether to use strict mode for JSON schema validation.
+        :param extra_completion_params: Additional parameters to pass litellm's completion method.
         """
         ModelRegistryHelper.__init__(self, model_entries)
 
@@ -94,6 +96,7 @@ class LiteLLMOpenAIMixin(
         self.api_base = openai_compat_api_base
         self.download_images = download_images
         self.json_schema_strict = json_schema_strict
+        self.extra_completion_params = extra_completion_params or {}
 
         if openai_compat_api_base:
             self.is_openai_compat = True
@@ -209,7 +212,7 @@ class LiteLLMOpenAIMixin(
         return schema
 
     async def _get_params(self, request: ChatCompletionRequest) -> dict:
-        input_dict = {}
+        input_dict = self.extra_completion_params.copy()
 
         input_dict["messages"] = [
             await convert_message_to_openai_dict_new(m, download_images=self.download_images) for m in request.messages

@@ -41,6 +41,10 @@ class OpenAIConfig(BaseModel):
         default=None,
         description="Mapping of embedding models to their metadata. Defaults to OpenAI's values",
     )
+    extra_completion_params: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Extra parameters to pass to litellm's completion. For example drop_params or allowed_openai_params",
+    )
 
     @classmethod
     def sample_run_config(
@@ -49,6 +53,7 @@ class OpenAIConfig(BaseModel):
         base_url: str = "${env.OPENAI_BASE_URL:=https://api.openai.com/v1}",
         allowed_models: list[str] = None,
         embeddings_metadata: dict[str, EmbeddingMetadata] | None = None,
+        extra_completion_params: dict[str, Any] | None = None,
         **kwargs,
     ) -> dict[str, Any]:
         # Import here to avoid circular references
@@ -56,10 +61,12 @@ class OpenAIConfig(BaseModel):
 
         allowed_models = allowed_models or LLM_MODEL_IDS
         embeddings_metadata = embeddings_metadata or EMBEDDING_MODEL_IDS
+        extra_completion_params = extra_completion_params or {}
 
         return {
             "api_key": api_key,
             "base_url": base_url,
             "allowed_models": allowed_models,
             "embeddings_metadata": embeddings_metadata,
+            "extra_completion_params": extra_completion_params,
         }

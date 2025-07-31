@@ -50,6 +50,7 @@ class OpenAIInferenceAdapter(OpenAIMixin, LiteLLMOpenAIMixin):
             api_key_from_config=config.api_key,
             provider_data_api_key_field="openai_api_key",
             openai_compat_api_base=config.base_url,
+            extra_completion_params=config.extra_completion_params,
         )
         self.config = config
 

@@ -81,6 +81,7 @@ providers:
         text-embedding-3-large:
           embedding_dimension: 3072
           context_length: 8192
+      extra_completion_params: {}
   - provider_id: anthropic
     provider_type: remote::anthropic
     config:

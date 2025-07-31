@@ -188,7 +188,10 @@ def available_providers() -> list[ProviderSpec]:
                 module="llama_stack.providers.remote.inference.openai",
                 config_class="llama_stack.providers.remote.inference.openai.OpenAIConfig",
                 provider_data_validator="llama_stack.providers.remote.inference.openai.config.OpenAIProviderDataValidator",
-                description="OpenAI inference provider for accessing GPT models and other OpenAI services.",
+                description=(
+                    "OpenAI inference provider for accessing GPT models and other OpenAI services.\n\n"
+                    "OpenAI only needs `api_key` but other servers need at least `base_url` and `allowed_models`, when there are embedding models `embeddings_metadata` is also needed."
+                ),
             ),
         ),
         remote_provider_spec(
